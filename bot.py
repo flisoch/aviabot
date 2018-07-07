@@ -5,41 +5,48 @@ TOKEN = '587528180:AAG4hsUKfoguxfkSEeyTzrD65PMKuy3EPbU'
 
 bot = telebot.TeleBot(TOKEN)
 
-greeting = 'Это бот блаблабла\n коротко о командах: бла бла бла'
 
 @bot.message_handler(commands=['start'])
-def start(m):
+def start(msgt):
 
     #toDo: связать с командой Меню 
-
-
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    
+    keyboard.add(types.KeyboardButton(text="Меню"))
+    greeting = 'Это бот блаблабла\n коротко о командах: бла бла бла'
+    bot.send_message(msgt.chat.id, greeting,reply_markup=keyboard)
 
-    bot.send_message(m.chat.id, greeting,
-        reply_markup=keyboard)
     # bot.register_next_step_handler(msg, name)
-    # menu(msg)
+    # menu(msgt)
 
+@bot.message_handler(regexp='Меню')
+def extra_menu(msg):
+    menu(msg)
 
 @bot.message_handler(commands=['menu'])
-def menu(m):
-    
+def menu(msg):
+
     #toDO: написать функцию, которая в зависимости от выбр кнопки вызывает команду. 
 
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(*[types.KeyboardButton(name) for name in ['Калькулятор',
-        'Помощь']])
-    keyboard.add(types.KeyboardButton('Сайт'))     #сайт кнопка-ссылка
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(text='Наш сайт',url='ya.ru'))     #сайт кнопка-ссылка
+
+    keyboard1 = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard1.add(*[types.KeyboardButton(name) for name in ['Калькулятор','Помощь']])
+
+    bot.send_message(msg.chat.id,'нащ',reply_markup=keyboard1)
+    bot.send_message(msg.chat.id,'сайт',reply_markup=keyboard)
 
 
+@bot.message_handler(regexp='Помощь')
+def extra_help(message):
+    help(message)
 
 @bot.message_handler(commands=['help'])
-def help(m):
+def help(message):
 
     #Todo: обеспечить меню после хелп-текста
 
-    detailedCommandsInfo = ' /calc is bla bla /site is bla bla bla'
+    detailedCommandsInfo = ' /calc is bla bla /menu is bla bla bla /help is bla'
 
     bot.send_message(message.chat.id, detailedCommandsInfo)
 
@@ -49,8 +56,8 @@ def calc(m):
 
     instruction = '1. bla bla \n 2.bla bla ... 4-5'
 
-    msg=bot.send_message(m.chat.id, instruction,
-        reply_markup=keyboard)
+    bot.send_message(m.chat.id, instruction)
+
     # bot.register_next_step_handler(msg, name)
 
 
