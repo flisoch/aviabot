@@ -1,5 +1,6 @@
-import datetime
+# -*- encoding: utf-8 -*-
 
+import datetime
 import telebot
 from telebot import types
 
