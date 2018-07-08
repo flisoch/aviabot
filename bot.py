@@ -75,7 +75,7 @@ def menu(msg):
 
     msg = bot.send_message(msg.chat.id, 'Нажмите на одну из кнопок или наберите одну из доступных команд'
                                         '\nСписок всех команд доступен в разделе "Помощь"', reply_markup=keyboard)
-    print("msg from: " + msg.chat)
+    print(msg.chat)
     # bot.register_next_step_handler(message=msg, callback=menu_func(msg))
 
 
