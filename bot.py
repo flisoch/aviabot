@@ -42,7 +42,7 @@ def site(msg):
     keyboard.add(types.InlineKeyboardButton(text='Перейти на сайт',
                                             url='https://www.uzairways.com/ru/tariffcalc?currency=UZS&'
                                                 'tablofrom=TAS&tabloto=IST&'
-                                                'date='+date))  # сайт кнопка-ссылка
+                                                'date=' + date))  # сайт кнопка-ссылка
     bot.send_message(msg.chat.id, "Чтобы перейти на наш сайт, нажмите кнопку ниже", reply_markup=keyboard)
 
 
@@ -74,13 +74,12 @@ def menu(msg):
 
     msg = bot.send_message(msg.chat.id, 'Нажмите на одну из кнопок или наберите одну из доступных команд'
                                         '\nСписок всех команд доступен в разделе "Помощь"', reply_markup=keyboard)
-    print(msg)
+    print("msg from: " + msg.chat)
     # bot.register_next_step_handler(message=msg, callback=menu_func(msg))
 
 
 @bot.message_handler(commands=['help'])
 def help(message):
-
     detailedCommandsInfo = ' Доступные команды бота:\n\n' \
                            '/calc введите то сё(описание всех шагов)\n\n' \
                            '/menu вызовет меню бота, откуда можно работать без вызова команд\n\n' \
