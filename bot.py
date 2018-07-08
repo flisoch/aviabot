@@ -1,3 +1,5 @@
+import datetime
+
 import telebot
 from telebot import types
 
@@ -35,8 +37,12 @@ def extra_help(message):
 
 @bot.message_handler(regexp='Наш Сайт')
 def site(msg):
+    date = str(datetime.datetime.now()).split()[0]
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='Перейти на сайт', url='ya.ru'))  # сайт кнопка-ссылка
+    keyboard.add(types.InlineKeyboardButton(text='Перейти на сайт',
+                                            url='https://www.uzairways.com/ru/tariffcalc?currency=UZS&'
+                                                'tablofrom=TAS&tabloto=IST&'
+                                                'date='+date))  # сайт кнопка-ссылка
     bot.send_message(msg.chat.id, "Чтобы перейти на наш сайт, нажмите кнопку ниже", reply_markup=keyboard)
 
 
