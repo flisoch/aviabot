@@ -1,12 +1,13 @@
 # -*- encoding: utf-8 -*-
-
 import datetime
+import time
+
 import telebot
 from telebot import types
 
 TOKEN = '587528180:AAG4hsUKfoguxfkSEeyTzrD65PMKuy3EPbU'
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TOKEN, threaded=False)
 
 
 @bot.message_handler(commands=['start'])
@@ -75,7 +76,7 @@ def menu(msg):
 
     msg = bot.send_message(msg.chat.id, 'Нажмите на одну из кнопок или наберите одну из доступных команд'
                                         '\nСписок всех команд доступен в разделе "Помощь"', reply_markup=keyboard)
-    print("msg from: " + msg.chat)
+    print(msg.chat)
     # bot.register_next_step_handler(message=msg, callback=menu_func(msg))
 
 
@@ -98,4 +99,11 @@ def calc(m):
     # bot.register_next_step_handler(msg, name)
 
 
-bot.polling(none_stop=True)
+while True:
+    try:
+        bot.polling(none_stop=True, timeout=31)
+    except Exception as e:
+
+        telebot.logger.error(e)
+
+        time.sleep(15)
