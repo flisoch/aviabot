@@ -4,10 +4,10 @@ import time
 
 import telebot
 from telebot import types
+from aviabot import secret
+from aviabot.Calculator import *
 
-TOKEN = '587528180:AAG4hsUKfoguxfkSEeyTzrD65PMKuy3EPbU'
-
-bot = telebot.TeleBot(TOKEN, threaded=False)
+bot = telebot.TeleBot(secret.TOKEN, threaded=False)
 
 
 @bot.message_handler(commands=['start'])
@@ -28,7 +28,7 @@ def extra_menu(msg):
 
 
 @bot.message_handler(regexp='(К|к)алькулятор')
-def extra_cals(msg):
+def extra_calc(msg):
     calc(msg)
 
 
@@ -93,17 +93,105 @@ def help(message):
 
 @bot.message_handler(commands=['calc'])  # калькулятор можно в отдельный класс и все функции там прописать
 def calc(m):
-    instruction = '1. bla bla \n 2.bla bla ... 4-5'
+    calculate(m, bot)
 
-    bot.send_message(m.chat.id, instruction)
-    # bot.register_next_step_handler(msg, name)
+
+@bot.message_handler(regexp="[a-zA-Zа-яА-Я0-9]\s[a-zA-Zа-яА-Я0-9]")
+def step11(m):
+    step1(m, bot)
+
+
+def calc_sum():  # к бд за стоимостью
+    return "575 999"
+
+
+@bot.callback_query_handler(func=lambda call: call.data[0:20] == 'second-calendar-day-')
+def get_day_second_call(call):
+    chat_id = call.message.chat.id
+    saved_date = current_shown_dates.get(chat_id)
+    if (saved_date is not None):
+        data = call.data.split()
+        day = data[0][20:]
+        month = data[1]
+        year = data[2]
+        date = datetime.datetime(int(saved_date[0]), int(saved_date[1]), int(day), 0, 0, 0)
+        markup = types.ReplyKeyboardRemove()
+        bot.send_message(chat_id, 'Дата прилёта: ' + str(date), reply_markup=markup)
+        bot.send_message(chat_id, 'Стоимость перелёта:' + calc_sum())
+
+
+@bot.callback_query_handler(func=lambda call: call.data[0:13] == 'calendar-day-')  # к бд за датой,есть ли вообще
+def get_day(call):
+    #Todo:кнопку снизу вменю/назад(выбрать снова города)
+    chat_id = call.message.chat.id
+    saved_date = current_shown_dates.get(chat_id)
+    if (saved_date is not None):
+        data = call.data.split()
+        day = data[0][13:]
+        month = data[1]
+        year = data[2]
+        date = datetime.datetime(int(saved_date[0]), int(saved_date[1]), int(day), 0, 0, 0)
+        markup = create_calendar(int(year), int(month), chosen_day=int(day), is_second_call=True)
+
+        bot.send_message(chat_id, "Дата вылета: " + str(date),
+                         reply_markup=markup)
+        bot.send_message(chat_id, 'Выберите дату прилёта')
+        bot.answer_callback_query(call.id, text="")
+
+
+    else:
+        # Do something to inform of the error
+        pass
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'next-month')
+def next_month(call):
+    chat_id = call.message.chat.id
+    saved_date = current_shown_dates.get(chat_id)
+    if (saved_date is not None):
+        year, month = saved_date
+        month += 1
+        if month > 12:
+            month = 1
+            year += 1
+        date = (year, month)
+        current_shown_dates[chat_id] = date
+        markup = create_calendar(year, month, chosen_day=0)
+        bot.edit_message_text("Please, choose a date", call.from_user.id, call.message.message_id, reply_markup=markup)
+        bot.answer_callback_query(call.id, text="")
+    else:
+        # Do something to inform of the error
+        pass
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'previous-month')
+def previous_month(call):
+    chat_id = call.message.chat.id
+    saved_date = current_shown_dates.get(chat_id)
+    if (saved_date is not None):
+        year, month = saved_date
+        month -= 1
+        if month < 1:
+            month = 12
+            year -= 1
+        date = (year, month)
+        current_shown_dates[chat_id] = date
+        markup = create_calendar(year, month, chosen_day=0)
+        bot.edit_message_text("Please, choose a date", call.from_user.id, call.message.message_id, reply_markup=markup)
+        bot.answer_callback_query(call.id, text="")
+    else:
+        # Do something to inform of the error
+        pass
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'ignore')
+def ignore(call):
+    bot.answer_callback_query(call.id, text="")
 
 
 while True:
     try:
         bot.polling(none_stop=True, timeout=31)
     except Exception as e:
-
         telebot.logger.error(e)
-
         time.sleep(15)
