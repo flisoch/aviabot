@@ -4,7 +4,7 @@ from telebot import types
 import calendar
 
 
-def create_calendar(year, month, chosen_day, is_second_call=False):
+def create_calendar(year, month, chosen_day=0, is_second_call=False):
     markup = types.InlineKeyboardMarkup()
     # First row - Month and Year
     row = []
@@ -33,12 +33,12 @@ def create_calendar(year, month, chosen_day, is_second_call=False):
             elif day < chosen_day and month <= now_month:
                 row.append(types.InlineKeyboardButton(" ", callback_data="ignore"))
             elif is_second_call:
-                row.append(types.InlineKeyboardButton(str(day), callback_data="second-calendar-day-"
+                row.append(types.InlineKeyboardButton(str(day), callback_data="second-calendar-day "
                                                                               + str(day) + " "
                                                                               + str(month) + " "
                                                                               + str(year)))
             else:
-                row.append(types.InlineKeyboardButton(str(day), callback_data="calendar-day-"
+                row.append(types.InlineKeyboardButton(str(day), callback_data="first-calendar-day "
                                                                               + str(day) + " "
                                                                               + str(month) + " "
                                                                               + str(year)))
