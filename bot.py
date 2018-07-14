@@ -11,41 +11,42 @@ bot = telebot.TeleBot(secret.TOKEN, threaded=False)
 
 
 @bot.message_handler(commands=['start'])
-def start(msgt):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+def start(msg):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True,one_time_keyboard=True)
     keyboard.add(types.KeyboardButton(text="Меню"))
     greeting = 'Этот бот поможет вам узнать цены на рейсы по выбранным вами направлениям перелёта\n' \
                'Доступные команды:\n/calc - подсчитает стоимость перелёта\n' \
                '/help - помощь по командам бота\n' \
                '/menu - меню бота'
 
-    bot.send_message(msgt.chat.id, greeting, reply_markup=keyboard)
+    bot.send_message(msg.chat.id, greeting, reply_markup=keyboard)
 
 
-@bot.message_handler(regexp='(М|м)еню')
-def extra_menu(msg):
-    menu(msg)
-
-
-@bot.message_handler(regexp='(К|к)алькулятор')
+@bot.message_handler(func=lambda message:message.text in ['Назад к выбору города','Калькулятор',
+                                                          'К выбору городов',"Изменить города"])
 def extra_calc(msg):
     calc(msg)
 
 
-@bot.message_handler(regexp='Помощь')
-def extra_help(message):
-    help(message)
+@bot.message_handler(regex="Изменить дату вылета")
+def change_vilet_date(message):
+    print("menyaem")
+    step2_show_calendar(message)
+
+@bot.message_handler(commands=['calc'])
+def calc(m):
+    calculate(m)
 
 
 @bot.message_handler(regexp='Наш Сайт')
 def site(msg):
     date = str(datetime.datetime.now()).split()[0]
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='Перейти на сайт',
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Перейти на сайт',
                                             url='https://www.uzairways.com/ru/tariffcalc?currency=UZS&'
                                                 'tablofrom=TAS&tabloto=IST&'
-                                                'date=' + date))  # сайт кнопка-ссылка
-    bot.send_message(msg.chat.id, "Чтобы перейти на наш сайт, нажмите кнопку ниже", reply_markup=keyboard)
+                                                'date=' + date))
+    bot.send_message(msg.chat.id, "Чтобы перейти на наш сайт, нажмите кнопку ниже", reply_markup=markup)
 
 
 # def menu_func(msg):
@@ -80,6 +81,11 @@ def menu(msg):
     # bot.register_next_step_handler(message=msg, callback=menu_func(msg))
 
 
+@bot.message_handler(regexp='(М|м)еню')
+def extra_menu(msg):
+    menu(msg)
+
+
 @bot.message_handler(commands=['help'])
 def help(message):
     detailedCommandsInfo = ' Доступные команды бота:\n\n' \
@@ -87,65 +93,32 @@ def help(message):
                            '/menu вызовет меню бота, откуда можно работать без вызова команд\n\n' \
                            '/help - помощь по использованию бота\n\n' \
                            'На наш сайт можно выйти из Меню\n\n'
-
     bot.send_message(message.chat.id, detailedCommandsInfo)
 
 
-@bot.message_handler(commands=['calc'])  # калькулятор можно в отдельный класс и все функции там прописать
-def calc(m):
-    calculate(m, bot)
+@bot.message_handler(regexp='Помощь')
+def extra_help(message):
+    help(message)
 
 
-@bot.message_handler(regexp="[a-zA-Zа-яА-Я0-9]\s[a-zA-Zа-яА-Я0-9]")
+@bot.message_handler(regexp="[a-zA-Zа-яА-Я0-9]\s+[a-zA-Zа-яА-Я0-9]")
 def step11(m):
-    step1(m, bot)
+    step1(m)
 
 
-def calc_sum():  # к бд за стоимостью
-    return "575 999"
-
-
-@bot.callback_query_handler(func=lambda call: call.data[0:20] == 'second-calendar-day-')
+@bot.callback_query_handler(func=lambda call: "second-calendar-day" in call.data)
 def get_day_second_call(call):
-    chat_id = call.message.chat.id
-    saved_date = current_shown_dates.get(chat_id)
-    if (saved_date is not None):
-        data = call.data.split()
-        day = data[0][20:]
-        month = data[1]
-        year = data[2]
-        date = datetime.datetime(int(saved_date[0]), int(saved_date[1]), int(day), 0, 0, 0)
-        markup = types.ReplyKeyboardRemove()
-        bot.send_message(chat_id, 'Дата прилёта: ' + str(date), reply_markup=markup)
-        bot.send_message(chat_id, 'Стоимость перелёта:' + calc_sum())
+    calendar_hadnler(call,is_second_call=True)
 
 
-@bot.callback_query_handler(func=lambda call: call.data[0:13] == 'calendar-day-')  # к бд за датой,есть ли вообще
+@bot.callback_query_handler(func=lambda call: "first-calendar-day" in call.data)  # к бд за датой,есть ли вообще
 def get_day(call):
-    #Todo:кнопку снизу вменю/назад(выбрать снова города)
-    chat_id = call.message.chat.id
-    saved_date = current_shown_dates.get(chat_id)
-    if (saved_date is not None):
-        data = call.data.split()
-        day = data[0][13:]
-        month = data[1]
-        year = data[2]
-        date = datetime.datetime(int(saved_date[0]), int(saved_date[1]), int(day), 0, 0, 0)
-        markup = create_calendar(int(year), int(month), chosen_day=int(day), is_second_call=True)
-
-        bot.send_message(chat_id, "Дата вылета: " + str(date),
-                         reply_markup=markup)
-        bot.send_message(chat_id, 'Выберите дату прилёта')
-        bot.answer_callback_query(call.id, text="")
-
-
-    else:
-        # Do something to inform of the error
-        pass
+    calendar_hadnler(call)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'next-month')
 def next_month(call):
+    print(current_shown_dates)
     chat_id = call.message.chat.id
     saved_date = current_shown_dates.get(chat_id)
     if (saved_date is not None):
@@ -156,6 +129,7 @@ def next_month(call):
             year += 1
         date = (year, month)
         current_shown_dates[chat_id] = date
+
         markup = create_calendar(year, month, chosen_day=0)
         bot.edit_message_text("Please, choose a date", call.from_user.id, call.message.message_id, reply_markup=markup)
         bot.answer_callback_query(call.id, text="")
@@ -166,6 +140,7 @@ def next_month(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'previous-month')
 def previous_month(call):
+    print(current_shown_dates)
     chat_id = call.message.chat.id
     saved_date = current_shown_dates.get(chat_id)
     if (saved_date is not None):
