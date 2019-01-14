@@ -4,8 +4,8 @@ import time
 import telebot
 from telebot import types
 
-from aviabot import secret
-from aviabot.telegramcalendar import create_calendar
+import secret
+from telegramcalendar import create_calendar
 
 current_shown_dates = {}
 

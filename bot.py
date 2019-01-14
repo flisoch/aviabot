@@ -4,8 +4,8 @@ import time
 
 import telebot
 from telebot import types
-from aviabot import secret
-from aviabot.Calculator import *
+import secret
+from Calculator import *
 
 bot = telebot.TeleBot(secret.TOKEN, threaded=False)
 
