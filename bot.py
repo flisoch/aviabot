@@ -17,7 +17,7 @@ API_TOKEN = secret.TOKEN
 WEBHOOK_HOST = 'fierce-island-30585.heroku.com'
 # WEBHOOK_HOST = '176.52.6.160'
 WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
-WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
+WEBHOOK_LISTEN = 'fierce-island-30585.heroku.com'  # In some VPS you may need to put here the IP addr
 
 WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Path to the ssl private key
